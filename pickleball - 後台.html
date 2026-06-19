@@ -1,0 +1,1414 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>匹克球管理後台</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: #f5f5f3;
+    color: #1a1a18;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 650; margin-bottom: 0.25rem; }
+  .subtitle { font-size: 14px; color: #6b6b68; margin-bottom: 2rem; }
+  .card, .result-card, .round-block {
+    background: #fff;
+    border: 1px solid #e3e2dc;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6b6b68;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.75rem;
+  }
+  .card-hint { font-size: 12px; color: #8b8b86; margin-top: 6px; line-height: 1.5; }
+  label { font-size: 14px; color: #3a3a38; }
+  input[type=text], input[type=tel], input[type=number], textarea, select {
+    font-family: inherit;
+    font-size: 14px;
+    border: 1px solid #d3d1c7;
+    border-radius: 8px;
+    padding: 7px 10px;
+    color: #1a1a18;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type=text]:focus, input[type=tel]:focus, input[type=number]:focus, textarea:focus, select:focus {
+    border-color: #534ab7;
+    box-shadow: 0 0 0 3px rgba(83,74,183,0.12);
+  }
+  input[type=number] { width: 82px; }
+  input[type=text], input[type=tel], textarea, select { width: 100%; }
+  textarea {
+    min-height: 76px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .registration-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .registration-empty {
+    color: #8b8b86;
+    font-size: 13px;
+    padding: 8px 0;
+  }
+  .registration-meta {
+    color: #6b6b68;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .registration-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+  .admin-panel[hidden] { display: none; }
+  .admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .radio-group { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .radio-group label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  input[type=radio] { accent-color: #534ab7; width: 15px; height: 15px; }
+  .chip-area { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; margin-top: 10px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f5f5f3;
+    border: 1px solid #d3d1c7;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 13px;
+    color: #1a1a18;
+  }
+  .chip button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #777;
+    font-size: 15px;
+    line-height: 1;
+    padding: 0 1px;
+  }
+  .chip button:hover { color: #111; }
+  .chip-selectable { cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+  .chip-selectable:hover { border-color: #b9b6f7; }
+  .chip-selected { border-color: #534ab7; box-shadow: 0 0 0 2px rgba(83,74,183,0.15); background: #eeedfe; }
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .tag-blue { background: #e6f1fb; color: #0c447c; }
+  .tag-teal { background: #e1f5ee; color: #085041; }
+  .tag-amber { background: #faeeda; color: #633806; }
+  .tag-coral { background: #faece7; color: #712b13; }
+  .tag-purple { background: #eeedfe; color: #3c3489; }
+  .tag-pink { background: #fbeaf0; color: #72243e; }
+  .tag-green { background: #eaf3de; color: #27500a; }
+  .tag-gray { background: #f1efe8; color: #444441; }
+  .tag-court { background: #1a1a18; color: #fff; font-weight: 800; }
+  button {
+    font-family: inherit;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-primary {
+    font-size: 15px;
+    font-weight: 650;
+    padding: 10px 28px;
+    border: none;
+    background: #534ab7;
+    color: #fff;
+  }
+  .btn-primary:hover { background: #3c3489; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary {
+    font-size: 13px;
+    padding: 5px 14px;
+    border: 1px solid #d3d1c7;
+    background: #fff;
+    color: #3a3a38;
+  }
+  .btn-secondary:hover { background: #f5f5f3; }
+  .result-section { margin-top: 1.5rem; }
+  .group-header {
+    font-size: 14px;
+    font-weight: 650;
+    color: #1a1a18;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0efe8;
+    font-size: 14px;
+  }
+  .player-row:last-child { border-bottom: none; }
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .match-vs {
+    font-size: 11px;
+    background: #f5f5f3;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #777;
+  }
+  .match-meta, .match-num { font-size: 12px; color: #999; }
+  .match-num { min-width: 34px; }
+  .notice { font-size: 13px; color: #a32d2d; margin-bottom: 0.75rem; }
+  .round-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .round-block-title {
+    font-size: 14px;
+    font-weight: 650;
+    color: #1a1a18;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .round-block-time { font-size: 12px; color: #8b8b86; }
+  .court-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f5f5f3;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .court-row:last-child { border-bottom: none; }
+  .rest-row {
+    font-size: 12px;
+    color: #8b8b86;
+    padding-top: 8px;
+    border-top: 1px dashed #eee;
+    margin-top: 4px;
+    line-height: 1.6;
+  }
+  @media (max-width: 520px) {
+    body { padding: 1rem 0.75rem; }
+    .card, .result-card, .round-block { padding: 1rem; }
+    .radio-group { gap: 0.8rem; }
+  }
+  @media print {
+    body { background: #fff; padding: 1rem; }
+    .no-print { display: none !important; }
+    .card, .result-card, .round-block { border: 1px solid #ccc; break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>匹克球管理後台</h1>
+  <p class="subtitle">管理報名名單、匯出資料，並依名單產生賽程。</p>
+
+  <div class="card no-print">
+    <div class="card-title">球員報名</div>
+    <div class="grid2">
+      <div class="form-field">
+        <label for="signupName">姓名</label>
+        <input type="text" id="signupName" placeholder="例：王小明" />
+      </div>
+      <div class="form-field">
+        <label for="signupLevel">程度（非必填）</label>
+        <select id="signupLevel">
+          <option value="">不填寫</option>
+          <option value="新手">新手</option>
+          <option value="2.0-2.5">2.0-2.5</option>
+          <option value="2.5-3.0">2.5-3.0</option>
+          <option value="3.0-3.5">3.0-3.5</option>
+          <option value="3.5以上">3.5以上</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-field" style="margin-top:12px;">
+      <label for="signupNote">備註</label>
+      <textarea id="signupNote" placeholder="新入群者自我填寫"></textarea>
+    </div>
+    <div class="row" style="margin-top:12px;">
+      <button class="btn-primary" type="button" onclick="submitRegistration()">送出報名</button>
+      <button class="btn-secondary" type="button" onclick="clearSignupForm()">清空</button>
+      <span id="signupMessage" class="card-hint"></span>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <div class="registration-toolbar">
+      <div>
+        <div class="card-title" style="margin-bottom:4px;">已報名名單</div>
+        <p class="card-hint" style="margin-top:0;">送出後會直接加入名單；管理功能預設隱藏，避免公開頁面直接出現刪改按鈕。</p>
+      </div>
+      <div class="row">
+        <button class="btn-secondary" type="button" onclick="toggleAdminPanel()">開啟賽程管理</button>
+        <button class="btn-secondary" type="button" onclick="exportRegistrations()">匯出 CSV</button>
+      </div>
+    </div>
+    <div id="registrationList"></div>
+  </div>
+
+  <div id="adminPanel" class="admin-panel" hidden>
+    <div class="admin-header no-print">
+      <div>
+        <div class="card-title" style="margin-bottom:4px;">管理模式</div>
+        <p class="card-hint" style="margin-top:0;">這裡才提供手動增刪球員、配對與產生賽程。</p>
+      </div>
+      <button class="btn-secondary" type="button" onclick="toggleAdminPanel()">收合管理模式</button>
+    </div>
+
+  <div class="card no-print">
+    <div class="card-title">球員數量</div>
+    <div class="row">
+      <input type="number" id="playerCount" min="2" max="64" value="8" />
+      <span style="font-size:14px;color:#6b6b68;">人</span>
+      <button class="btn-secondary" type="button" onclick="autoFill()">自動填入示範名單</button>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <div class="card-title">球員名單</div>
+    <input type="text" id="nameInput" placeholder="輸入姓名後按 Enter 加入" onkeydown="if(event.key==='Enter')addPlayer()" />
+    <div class="chip-area" id="chipArea"></div>
+  </div>
+
+  <div class="card no-print">
+    <div class="card-title">賽制</div>
+    <select id="format" onchange="onFormatChange()">
+      <option value="robin">循環賽：每組互打一次</option>
+      <option value="single">單敗淘汰</option>
+      <option value="double">雙敗淘汰：含敗部提示</option>
+      <option value="group">分組循環 + 單敗淘汰</option>
+      <option value="casual">休閒輪替：平均出賽與休息</option>
+    </select>
+  </div>
+
+  <div class="card no-print" id="casualCard" style="display:none;">
+    <div class="card-title">休閒輪替設定</div>
+    <div class="row">
+      <label for="casualRounds">總輪數</label>
+      <input type="number" id="casualRounds" min="1" max="50" value="6" />
+      <span style="font-size:14px;color:#6b6b68;">輪</span>
+    </div>
+    <p class="card-hint">系統會優先安排休息較久、出賽較少的人上場，雙打會盡量減少重複搭檔與重複對手。</p>
+  </div>
+
+  <div class="card no-print">
+    <div class="card-title">比賽類型</div>
+    <div class="radio-group">
+      <label><input type="radio" name="gtype" value="singles" checked onchange="onGtypeChange()" /> 單打 1v1</label>
+      <label><input type="radio" name="gtype" value="doubles" onchange="onGtypeChange()" /> 雙打 2v2</label>
+    </div>
+  </div>
+
+  <div class="card no-print" id="pairCard" style="display:none;">
+    <div class="card-title">固定雙打隊伍</div>
+    <div class="row" style="margin-bottom:4px;">
+      <button class="btn-secondary" type="button" onclick="randomPairAll()">隨機配對全部</button>
+      <button class="btn-secondary" type="button" onclick="resetPairs()">清除配對</button>
+    </div>
+    <p class="card-hint" id="pairHint"></p>
+    <div class="chip-area" id="unpaired"></div>
+    <div id="pairedTeams"></div>
+  </div>
+
+  <div class="card no-print">
+    <div class="card-title">場地與時間</div>
+    <div class="row">
+      <label for="courtCount">可用場地</label>
+      <input type="number" id="courtCount" min="1" max="20" value="2" />
+      <span style="font-size:14px;color:#6b6b68;">面</span>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <label for="matchMinutes">每場時間</label>
+      <input type="number" id="matchMinutes" min="5" max="60" value="15" />
+      <span style="font-size:14px;color:#6b6b68;">分鐘</span>
+    </div>
+    <p class="card-hint">產生賽程時會把不衝突的比賽排在同一輪，並依場地數分配場次。</p>
+  </div>
+
+  <div class="no-print">
+    <button class="btn-primary" type="button" onclick="generate()">產生賽程</button>
+  </div>
+
+  <div id="output" class="result-section"></div>
+  </div>
+</div>
+
+<script>
+let players = [];
+let fixedTeams = [];
+let selectedForPair = null;
+let registrations = [];
+const tagColors = ['blue','teal','amber','coral','purple','pink','green','gray'];
+const avatarBg = ['#E6F1FB','#E1F5EE','#FAEEDA','#FAECE7','#EEEDFE','#FBEAF0','#EAF3DE','#F1EFE8'];
+const avatarFg = ['#0C447C','#085041','#633806','#712B13','#3C3489','#72243E','#27500A','#444441'];
+const registrationStorageKey = 'badmintonTournamentRegistrations';
+const registrationApiUrl = '';
+const adminPasscode = '2468';
+let adminUnlocked = false;
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[ch]);
+}
+
+function levelHtml(level) {
+  const cleanLevel = String(level || '').trim();
+  if (!cleanLevel || cleanLevel === '初學' || cleanLevel === '出學') return '';
+  return ` <span class="registration-meta">程度：${escapeHtml(cleanLevel)}</span>`;
+}
+
+function loadRegistrations() {
+  try {
+    const saved = localStorage.getItem(registrationStorageKey);
+    registrations = saved ? JSON.parse(saved) : [];
+    if (!Array.isArray(registrations)) registrations = [];
+  } catch (error) {
+    registrations = [];
+  }
+  renderRegistrations();
+}
+
+function saveRegistrations() {
+  localStorage.setItem(registrationStorageKey, JSON.stringify(registrations));
+}
+
+function submitRegistration() {
+  const name = document.getElementById('signupName').value.trim();
+  const contact = document.getElementById('signupContact').value.trim();
+  const level = document.getElementById('signupLevel').value;
+  const partner = document.getElementById('signupPartner').value.trim();
+  const note = document.getElementById('signupNote').value.trim();
+  const message = document.getElementById('signupMessage');
+
+  if (!name) {
+    message.textContent = '請先填寫姓名。';
+    message.style.color = '#a32d2d';
+    return;
+  }
+  if (players.includes(name) || registrations.some(item => item.name === name && item.status !== 'rejected')) {
+    message.textContent = '這位球員已經在名單或報名紀錄中。';
+    message.style.color = '#a32d2d';
+    return;
+  }
+
+  registrations.push({
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name,
+    contact,
+    level,
+    partner,
+    note,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  });
+  saveRegistrations();
+  renderRegistrations();
+  clearSignupForm(false);
+  message.textContent = '已送出報名，等待核准加入賽程名單。';
+  message.style.color = '#085041';
+}
+
+function clearSignupForm(clearMessage = true) {
+  document.getElementById('signupName').value = '';
+  document.getElementById('signupContact').value = '';
+  document.getElementById('signupLevel').value = '中階';
+  document.getElementById('signupPartner').value = '';
+  document.getElementById('signupNote').value = '';
+  if (clearMessage) document.getElementById('signupMessage').textContent = '';
+}
+
+function registrationStatusLabel(status) {
+  if (status === 'approved') return '<span class="tag tag-teal">已核准</span>';
+  if (status === 'rejected') return '<span class="tag tag-coral">已拒絕</span>';
+  return '<span class="tag tag-amber">待審</span>';
+}
+
+function formatRegistrationTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+function renderRegistrations() {
+  const list = document.getElementById('registrationList');
+  if (!list) return;
+  if (registrations.length === 0) {
+    list.innerHTML = '<div class="registration-empty">目前沒有報名資料。</div>';
+    return;
+  }
+
+  list.innerHTML = registrations.map(item => `
+    <div class="player-row">
+      ${registrationStatusLabel(item.status)}
+      <div>
+        <div>${escapeHtml(item.name)}${levelHtml(item.level)}</div>
+        <div class="registration-meta">
+          ${item.contact ? `聯絡：${escapeHtml(item.contact)}　` : ''}
+          ${item.partner ? `搭檔：${escapeHtml(item.partner)}　` : ''}
+          ${item.note ? `備註：${escapeHtml(item.note)}　` : ''}
+          ${formatRegistrationTime(item.createdAt)}
+        </div>
+      </div>
+      <div class="registration-actions">
+        ${item.status === 'pending' ? `<button class="btn-secondary" type="button" onclick="approveRegistration('${item.id}')">核准</button><button class="btn-secondary" type="button" onclick="rejectRegistration('${item.id}')">拒絕</button>` : ''}
+        <button class="btn-secondary" type="button" onclick="deleteRegistration('${item.id}')">刪除</button>
+      </div>
+    </div>`).join('');
+}
+
+function approveRegistration(id) {
+  const item = registrations.find(entry => entry.id === id);
+  if (!item) return;
+  if (!players.includes(item.name)) {
+    players.push(item.name);
+    document.getElementById('playerCount').value = players.length;
+    renderChips();
+  }
+  item.status = 'approved';
+  saveRegistrations();
+  renderRegistrations();
+  resetTeamState();
+}
+
+function approveAllRegistrations() {
+  registrations.filter(item => item.status === 'pending').forEach(item => {
+    if (!players.includes(item.name)) players.push(item.name);
+    item.status = 'approved';
+  });
+  document.getElementById('playerCount').value = players.length;
+  renderChips();
+  saveRegistrations();
+  renderRegistrations();
+  resetTeamState();
+}
+
+function rejectRegistration(id) {
+  const item = registrations.find(entry => entry.id === id);
+  if (!item) return;
+  item.status = 'rejected';
+  saveRegistrations();
+  renderRegistrations();
+}
+
+function deleteRegistration(id) {
+  registrations = registrations.filter(item => item.id !== id);
+  saveRegistrations();
+  renderRegistrations();
+}
+
+function clearApprovedRegistrations() {
+  registrations = registrations.filter(item => item.status !== 'approved');
+  saveRegistrations();
+  renderRegistrations();
+}
+
+function exportRegistrations() {
+  const header = ['狀態','姓名','聯絡方式','程度','雙打搭檔','備註','報名時間'];
+  const rows = registrations.map(item => [
+    item.status === 'approved' ? '已核准' : item.status === 'rejected' ? '已拒絕' : '待審',
+    item.name,
+    item.contact || '',
+    item.level || '',
+    item.partner || '',
+    item.note || '',
+    item.createdAt || ''
+  ]);
+  const csv = [header, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = '球員報名名單.csv';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function addPlayer() {
+  const inp = document.getElementById('nameInput');
+  const name = inp.value.trim();
+  if (!name || players.includes(name)) {
+    inp.value = '';
+    return;
+  }
+  players.push(name);
+  inp.value = '';
+  renderChips();
+  document.getElementById('playerCount').value = players.length;
+  resetTeamState();
+}
+
+function removePlayer(index) {
+  players.splice(index, 1);
+  renderChips();
+  document.getElementById('playerCount').value = players.length;
+  resetTeamState();
+}
+
+function resetTeamState() {
+  fixedTeams = [];
+  selectedForPair = null;
+  onGtypeChange();
+}
+
+function renderChips() {
+  document.getElementById('chipArea').innerHTML = players.map((p, i) => `
+    <span class="chip">
+      <span class="tag tag-${tagColors[i % 8]}">${i + 1}</span>
+      ${escapeHtml(p)}
+      <button type="button" onclick="removePlayer(${i})" aria-label="移除 ${escapeHtml(p)}">x</button>
+    </span>`).join('');
+}
+
+function autoFill() {
+  const n = parseInt(document.getElementById('playerCount').value, 10) || 8;
+  const names = ['小安','柏翰','志明','雅婷','冠宇','怡君','俊傑','家豪','孟庭','品萱','宇軒','承恩','佳樺','庭瑋','昭宏','欣怡','哲維','思妤','凱翔','宥辰','采潔','彥廷','若涵','宗翰','佩蓉','昱翔'];
+  players = names.slice(0, Math.min(n, names.length));
+  renderChips();
+  resetTeamState();
+}
+
+function onFormatChange() {
+  const format = document.getElementById('format').value;
+  document.getElementById('casualCard').style.display = format === 'casual' ? '' : 'none';
+  onGtypeChange();
+}
+
+function onGtypeChange() {
+  const isDoubles = document.querySelector('input[name=gtype]:checked').value === 'doubles';
+  const format = document.getElementById('format').value;
+  const pairCard = document.getElementById('pairCard');
+  if (isDoubles && format !== 'casual') {
+    pairCard.style.display = '';
+    renderPairUI();
+  } else {
+    pairCard.style.display = 'none';
+    fixedTeams = [];
+    selectedForPair = null;
+  }
+}
+
+function renderPairUI() {
+  const pairedNames = new Set(fixedTeams.flat());
+  const unpaired = players.filter(p => !pairedNames.has(p));
+  document.getElementById('unpaired').innerHTML = unpaired.map(p => {
+    const i = playerIdx(p);
+    const selected = p === selectedForPair ? ' chip-selected' : '';
+    return `<span class="chip chip-selectable${selected}" onclick="togglePairSelect('${encodeURIComponent(p)}')"><span class="tag tag-${tagColors[i % 8]}">${i + 1}</span>${escapeHtml(p)}</span>`;
+  }).join('');
+
+  document.getElementById('pairedTeams').innerHTML = fixedTeams.length ? `
+    <div class="result-card" style="margin-top:10px;">
+      ${fixedTeams.map((team, teamIndex) => `
+        <div class="player-row">
+          <div class="avatar" style="background:#534ab7;color:#fff;">${teamIndex + 1}</div>
+          ${teamHtml(team)}
+          <button class="btn-secondary" style="margin-left:auto;padding:2px 10px;font-size:12px;" type="button" onclick="removeTeam(${teamIndex})">移除</button>
+        </div>`).join('')}
+    </div>` : '';
+
+  const hint = document.getElementById('pairHint');
+  if (players.length === 0) hint.textContent = '請先輸入球員名單。';
+  else if (unpaired.length === 0) hint.textContent = `已完成 ${fixedTeams.length} 組固定隊伍。`;
+  else if (unpaired.length % 2 !== 0) hint.textContent = `目前還有 ${unpaired.length} 人未配對，最後一人會在賽程中輪空。`;
+  else hint.textContent = `點選兩位未配對球員即可組成固定隊伍。目前未配對 ${unpaired.length} 人。`;
+}
+
+function togglePairSelect(encodedName) {
+  const name = decodeURIComponent(encodedName);
+  if (selectedForPair === null) selectedForPair = name;
+  else if (selectedForPair === name) selectedForPair = null;
+  else {
+    fixedTeams.push([selectedForPair, name]);
+    selectedForPair = null;
+  }
+  renderPairUI();
+}
+
+function removeTeam(index) {
+  fixedTeams.splice(index, 1);
+  renderPairUI();
+}
+
+function randomPairAll() {
+  fixedTeams = [];
+  const shuffledPlayers = shuffle(players);
+  for (let i = 0; i < shuffledPlayers.length - 1; i += 2) fixedTeams.push([shuffledPlayers[i], shuffledPlayers[i + 1]]);
+  selectedForPair = null;
+  renderPairUI();
+}
+
+function resetPairs() {
+  fixedTeams = [];
+  selectedForPair = null;
+  renderPairUI();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function makeTeams(ps) {
+  const teams = [];
+  for (let i = 0; i < ps.length - 1; i += 2) teams.push([ps[i], ps[i + 1]]);
+  if (ps.length % 2 !== 0) teams.push([ps[ps.length - 1]]);
+  return teams;
+}
+
+function getUnits(ps, isDoubles) {
+  if (!isDoubles) return ps.map(p => [p]);
+  if (fixedTeams.length > 0) {
+    const covered = new Set(fixedTeams.flat());
+    const remaining = ps.filter(p => !covered.has(p));
+    return shuffle([...fixedTeams.map(team => [...team]), ...makeTeams(remaining)]);
+  }
+  return makeTeams(ps);
+}
+
+function playerIdx(name) {
+  return Math.max(0, players.indexOf(name));
+}
+
+function tagHtml(name) {
+  const i = playerIdx(name);
+  return `<span class="tag tag-${tagColors[i % 8]}">${escapeHtml(name)}</span>`;
+}
+
+function teamHtml(unit) {
+  if (!Array.isArray(unit)) return tagHtml(unit);
+  if (unit.length === 1 && unit[0] === '?') return '<span class="tag tag-gray">勝方待定</span>';
+  return unit.map(p => p === '?' ? '<span class="tag tag-gray">勝方待定</span>' : tagHtml(p)).join(' <span style="font-size:11px;color:#aaa;">&</span> ');
+}
+
+function allPlayersOf(unit) {
+  if (typeof unit === 'string') return unit === '?' ? [] : [unit];
+  if (Array.isArray(unit)) return unit.flatMap(allPlayersOf);
+  return [];
+}
+
+function getCourtCount() {
+  return Math.max(1, parseInt(document.getElementById('courtCount').value, 10) || 1);
+}
+
+function getMatchMinutes() {
+  return Math.max(1, parseInt(document.getElementById('matchMinutes').value, 10) || 15);
+}
+
+function scheduleMatches(matches, courts) {
+  const rounds = [];
+  const remaining = [...matches];
+  const restStreak = {};
+  const allPlayerNames = new Set();
+  matches.forEach(match => {
+    [...allPlayersOf(match.a), ...allPlayersOf(match.b)].forEach(p => allPlayerNames.add(p));
+  });
+  allPlayerNames.forEach(p => restStreak[p] = 0);
+
+  function matchPriority(match) {
+    const involved = [...allPlayersOf(match.a), ...allPlayersOf(match.b)];
+    return involved.length ? Math.max(...involved.map(p => restStreak[p] || 0)) : 0;
+  }
+
+  while (remaining.length > 0) {
+    const round = [];
+    const usedPlayers = new Set();
+    const order = remaining
+      .map((match, index) => ({ match, index, priority: matchPriority(match) }))
+      .sort((a, b) => (b.priority - a.priority) || (a.index - b.index))
+      .map(item => item.index);
+    const taken = new Array(remaining.length).fill(false);
+
+    for (const index of order) {
+      if (round.length >= courts) break;
+      const match = remaining[index];
+      const involved = [...allPlayersOf(match.a), ...allPlayersOf(match.b)];
+      if (!involved.some(p => usedPlayers.has(p))) {
+        round.push(match);
+        involved.forEach(p => usedPlayers.add(p));
+        taken[index] = true;
+      }
+    }
+
+    if (round.length === 0) {
+      const match = remaining.shift();
+      round.push(match);
+      [...allPlayersOf(match.a), ...allPlayersOf(match.b)].forEach(p => usedPlayers.add(p));
+    } else {
+      for (let i = remaining.length - 1; i >= 0; i--) {
+        if (taken[i]) remaining.splice(i, 1);
+      }
+    }
+
+    allPlayerNames.forEach(p => {
+      restStreak[p] = usedPlayers.has(p) ? 0 : (restStreak[p] || 0) + 1;
+    });
+    rounds.push(round);
+  }
+  return rounds;
+}
+
+function courtTagHtml(courtNum) {
+  return `<span class="tag tag-court">場地 ${courtNum}</span>`;
+}
+
+function renderScheduledRounds(rounds, opts = {}) {
+  const minutes = getMatchMinutes();
+  const courts = getCourtCount();
+  let html = '';
+  let globalMatchNum = opts.startMatchNum || 1;
+  let cumulativeMinutes = 0;
+
+  rounds.forEach((round, roundIndex) => {
+    const playersInRound = new Set();
+    round.forEach(match => {
+      allPlayersOf(match.a).forEach(p => playersInRound.add(p));
+      allPlayersOf(match.b).forEach(p => playersInRound.add(p));
+    });
+    const startMin = cumulativeMinutes;
+    const endMin = cumulativeMinutes + minutes;
+    html += `<div class="round-block">
+      <div class="round-block-header">
+        <div class="round-block-title"><span class="tag tag-blue">第 ${roundIndex + 1} 輪</span>${opts.roundLabel ? `<span style="font-size:12px;color:#888;">${escapeHtml(opts.roundLabel)}</span>` : ''}</div>
+        <div class="round-block-time">預估 ${startMin}-${endMin} 分鐘，每場 ${minutes} 分鐘</div>
+      </div>`;
+
+    round.forEach((match, matchIndex) => {
+      html += `<div class="court-row">${courtTagHtml(matchIndex + 1)}<span class="match-num">#${globalMatchNum++}</span>${teamHtml(match.a)} <span class="match-vs">VS</span> ${teamHtml(match.b)}${match.note ? ` <span class="match-meta">${escapeHtml(match.note)}</span>` : ''}</div>`;
+    });
+
+    if (round.length < courts) html += `<div class="rest-row">空出 ${courts - round.length} 面場地。</div>`;
+    if (opts.allPlayers) {
+      const resting = opts.allPlayers.filter(p => !playersInRound.has(p));
+      if (resting.length > 0) html += `<div class="rest-row">本輪休息：${resting.map(p => tagHtml(p)).join(' ')}</div>`;
+    }
+    html += '</div>';
+    cumulativeMinutes = endMin;
+  });
+
+  html += `<div class="result-card" style="background:#f9f9f7;border-style:dashed;">
+    <div style="font-size:13px;color:#6b6b68;">共 ${rounds.length} 輪，預估總時間 <strong>${cumulativeMinutes} 分鐘</strong>。以每場 ${minutes} 分鐘、${courts} 面場地估算。</div>
+  </div>`;
+  return html;
+}
+
+function generate() {
+  const format = document.getElementById('format').value;
+  const isDoubles = document.querySelector('input[name=gtype]:checked').value === 'doubles';
+  if (players.length < 2) {
+    document.getElementById('output').innerHTML = '<p class="notice" style="margin-top:1rem;">請至少輸入 2 位球員。</p>';
+    return;
+  }
+  const shuffledPlayers = shuffle(players);
+  let html = '';
+  if (isDoubles && shuffledPlayers.length % 2 !== 0 && format !== 'casual') {
+    html += '<p class="notice">雙打人數為奇數，最後一位球員會被排為輪空或單人隊伍。</p>';
+  }
+  if (format === 'robin') html += genRobin(shuffledPlayers, isDoubles);
+  else if (format === 'single') html += genSingle(shuffledPlayers, isDoubles);
+  else if (format === 'double') html += genDouble(shuffledPlayers, isDoubles);
+  else if (format === 'casual') html += genCasual(shuffledPlayers, isDoubles);
+  else html += genGroup(shuffledPlayers, isDoubles);
+  html += `<div class="no-print" style="margin-top:1rem;"><button class="btn-secondary" type="button" onclick="window.print()">列印 / 另存 PDF</button></div>`;
+  document.getElementById('output').innerHTML = html;
+}
+
+function genRobin(ps, isDoubles) {
+  const units = getUnits(ps, isDoubles);
+  const n = units.length;
+  const total = n * (n - 1) / 2;
+  const courts = getCourtCount();
+  const matches = [];
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) matches.push({ a: units[i], b: units[j] });
+  }
+  const rounds = scheduleMatches(matches, courts);
+  return `<div class="result-card">
+    <div class="group-header">
+      <span class="tag tag-teal">循環賽</span>
+      <span style="font-size:13px;color:#6b6b68;">${isDoubles ? '雙打' : '單打'}，共 ${n} 組，${total} 場，${courts} 面場地</span>
+    </div>
+  </div>` + renderScheduledRounds(rounds, { allPlayers: ps });
+}
+
+function genSingle(ps, isDoubles) {
+  const units = getUnits(ps, isDoubles);
+  const n = units.length;
+  const courts = getCourtCount();
+  const nextPow2 = Math.pow(2, Math.ceil(Math.log2(n)));
+  const byeCount = nextPow2 - n;
+  let html = `<div class="result-card"><div class="group-header"><span class="tag tag-amber">單敗淘汰</span><span style="font-size:13px;color:#6b6b68;">${isDoubles ? '雙打' : '單打'}，共 ${n} 組，${courts} 面場地${byeCount > 0 ? `，${byeCount} 組首輪輪空` : ''}</span></div></div>`;
+  let current = [...units];
+  let byeLeft = byeCount;
+  let bracketRound = 1;
+  const minutes = getMatchMinutes();
+  let cumulativeMinutes = 0;
+
+  while (current.length > 1) {
+    const next = [];
+    const matches = [];
+    let i = 0;
+    while (i < current.length) {
+      if (byeLeft > 0 && bracketRound === 1) {
+        next.push(current[i]);
+        byeLeft--;
+        i++;
+      } else if (i + 1 < current.length) {
+        matches.push({ a: current[i], b: current[i + 1], note: '勝方晉級' });
+        next.push(['?']);
+        i += 2;
+      } else {
+        next.push(current[i]);
+        i++;
+      }
+    }
+
+    const subRounds = scheduleMatches(matches, courts);
+    html += `<div class="round-block"><div class="round-block-header"><div class="round-block-title"><span class="tag tag-amber">淘汰賽第 ${bracketRound} 輪</span></div></div>`;
+    subRounds.forEach((sub, subIndex) => {
+      const startMin = cumulativeMinutes;
+      const endMin = cumulativeMinutes + minutes;
+      html += `<div style="font-size:12px;color:#888;margin:${subIndex === 0 ? '0' : '10px'} 0 4px;">時段 ${subIndex + 1}，預估 ${startMin}-${endMin} 分鐘</div>`;
+      sub.forEach((match, matchIndex) => {
+        html += `<div class="court-row">${courtTagHtml(matchIndex + 1)}${teamHtml(match.a)} <span class="match-vs">VS</span> ${teamHtml(match.b)} <span class="match-meta">${escapeHtml(match.note)}</span></div>`;
+      });
+      if (sub.length < courts) html += `<div class="rest-row">空出 ${courts - sub.length} 面場地。</div>`;
+      cumulativeMinutes = endMin;
+    });
+    html += '</div>';
+    current = next;
+    bracketRound++;
+  }
+  html += `<div class="result-card"><div class="group-header"><span class="tag tag-amber">決賽</span></div><div class="court-row">${courtTagHtml(1)}準決賽勝方 <span class="match-vs">VS</span> 準決賽勝方</div></div>`;
+  html += `<div class="result-card" style="background:#f9f9f7;border-style:dashed;"><div style="font-size:13px;color:#6b6b68;">已排入淘汰賽主要場次，預估至少 <strong>${cumulativeMinutes} 分鐘</strong>，實際時間會依晉級結果調整。</div></div>`;
+  return html;
+}
+
+function genDouble(ps, isDoubles) {
+  const units = getUnits(ps, isDoubles);
+  const n = units.length;
+  const courts = getCourtCount();
+  let html = `<div class="result-card"><div class="group-header"><span class="tag tag-coral">雙敗淘汰</span><span style="font-size:13px;color:#6b6b68;">${isDoubles ? '雙打' : '單打'}，共 ${n} 組，${courts} 面場地。敗部賽程需依勝負結果續排。</span></div></div>`;
+  html += '<div class="grid2">';
+  html += '<div class="result-card"><div class="group-header"><span class="tag tag-blue">勝部</span></div>';
+  let current = [...units];
+  let round = 1;
+  while (current.length > 1) {
+    const matches = [];
+    for (let i = 0; i < current.length - 1; i += 2) matches.push({ a: current[i], b: current[i + 1] });
+    const subRounds = scheduleMatches(matches, courts);
+    html += `<div style="font-size:12px;color:#888;margin:8px 0 4px;">第 ${round} 輪</div>`;
+    subRounds.forEach(sub => {
+      sub.forEach((match, matchIndex) => {
+        html += `<div class="court-row">${courtTagHtml(matchIndex + 1)}${teamHtml(match.a)} <span class="match-vs">VS</span> ${teamHtml(match.b)}</div>`;
+      });
+    });
+    const next = [];
+    for (let i = 0; i < current.length - 1; i += 2) next.push(['?']);
+    if (current.length % 2 !== 0) next.push(current[current.length - 1]);
+    current = next;
+    round++;
+  }
+  html += '</div>';
+  html += `<div class="result-card"><div class="group-header"><span class="tag tag-coral">敗部</span></div><div style="font-size:13px;color:#6b6b68;line-height:1.8;margin-bottom:8px;">每輪敗方進入敗部，第二敗淘汰。下列為敗部初始占位。</div>`;
+  const loserCount = Math.floor(n / 2);
+  for (let i = 0; i < loserCount; i++) {
+    html += `<div class="court-row">${courtTagHtml((i % courts) + 1)}<span class="tag tag-gray">敗方 ${i * 2 + 1}</span> <span class="match-vs">VS</span> <span class="tag tag-gray">敗方 ${i * 2 + 2}</span></div>`;
+  }
+  html += '</div></div>';
+  html += `<div class="result-card"><div class="group-header"><span class="tag tag-amber">總決賽</span></div><div class="court-row">${courtTagHtml(1)}勝部冠軍 <span class="match-vs">VS</span> 敗部冠軍</div><div style="font-size:12px;color:#888;margin-top:6px;">若敗部冠軍擊敗勝部冠軍，依雙敗規則可加賽一場。</div></div>`;
+  return html;
+}
+
+function genGroup(ps, isDoubles) {
+  const baseUnits = isDoubles ? getUnits(ps, isDoubles) : ps.map(p => [p]);
+  const n = baseUnits.length;
+  const groupCount = n <= 6 ? 2 : n <= 12 ? 3 : n <= 16 ? 4 : Math.ceil(n / 4);
+  const groups = Array.from({ length: groupCount }, () => []);
+  baseUnits.forEach((unit, index) => groups[index % groupCount].push(unit));
+  const colorList = ['blue','teal','coral','amber','purple','pink','green','gray'];
+  const courts = getCourtCount();
+  let html = `<div class="result-card"><div class="group-header"><span class="tag tag-purple">分組循環 + 淘汰</span><span style="font-size:13px;color:#6b6b68;">${isDoubles ? '雙打' : '單打'}，共 ${groupCount} 組，${courts} 面場地</span></div></div>`;
+
+  html += '<div class="grid2">';
+  groups.forEach((group, groupIndex) => {
+    const color = colorList[groupIndex % colorList.length];
+    const memberCount = group.reduce((sum, unit) => sum + unit.length, 0);
+    html += `<div class="result-card"><div class="group-header"><span class="tag tag-${color}">${String.fromCharCode(65 + groupIndex)} 組</span><span style="font-size:13px;color:#6b6b68;">${memberCount} 人</span></div>`;
+    group.forEach((unit, unitIndex) => {
+      const colorIndex = playerIdx(unit[0]) % 8;
+      html += `<div class="player-row"><div class="avatar" style="background:${avatarBg[colorIndex]};color:${avatarFg[colorIndex]}">${unitIndex + 1}</div>${teamHtml(unit)}</div>`;
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+
+  const allMatches = [];
+  groups.forEach((group, groupIndex) => {
+    for (let a = 0; a < group.length; a++) {
+      for (let b = a + 1; b < group.length; b++) allMatches.push({ a: group[a], b: group[b], note: `${String.fromCharCode(65 + groupIndex)} 組` });
+    }
+  });
+  const rounds = scheduleMatches(allMatches, courts);
+  html += `<div class="result-card"><div class="group-header"><span class="tag tag-teal">分組賽程</span></div></div>`;
+  html += renderScheduledRounds(rounds, { allPlayers: ps, roundLabel: '分組循環' });
+  html += `<div class="result-card"><div class="group-header"><span class="tag tag-amber">淘汰賽建議</span></div><div style="font-size:13px;color:#6b6b68;">各組前 2 名晉級，依排名交叉對戰。晉級名單確認後，可切換成單敗淘汰賽重新產生決賽賽程。</div></div>`;
+  return html;
+}
+
+function genCasual(ps, isDoubles) {
+  const courts = getCourtCount();
+  const minutes = getMatchMinutes();
+  const totalRounds = Math.max(1, parseInt(document.getElementById('casualRounds').value, 10) || 6);
+  const groupSize = isDoubles ? 4 : 2;
+  const n = ps.length;
+  if (n < groupSize) {
+    return `<p class="notice" style="margin-top:1rem;">${isDoubles ? '雙打' : '單打'}至少需要 ${groupSize} 位球員，目前只有 ${n} 位。</p>`;
+  }
+
+  const stats = {};
+  ps.forEach(p => stats[p] = { played: 0, restStreak: 0, partners: new Set(), opponents: new Set() });
+  const roundsData = [];
+
+  for (let round = 0; round < totalRounds; round++) {
+    const order = [...ps].sort((a, b) => {
+      const sa = stats[a];
+      const sb = stats[b];
+      if (sb.restStreak !== sa.restStreak) return sb.restStreak - sa.restStreak;
+      if (sa.played !== sb.played) return sa.played - sb.played;
+      return Math.random() - 0.5;
+    });
+    const maxByCourts = courts * groupSize;
+    const numPlaying = Math.min(Math.floor(maxByCourts / groupSize), Math.floor(n / groupSize)) * groupSize;
+    const playing = order.slice(0, numPlaying);
+    const resting = order.slice(numPlaying);
+    const numCourtsUsed = numPlaying / groupSize;
+    const matches = [];
+
+    for (let court = 0; court < numCourtsUsed; court++) {
+      const group = playing.slice(court * groupSize, court * groupSize + groupSize);
+      if (isDoubles) {
+        const [teamA, teamB] = pickBestPairing(group, stats);
+        matches.push({ a: teamA, b: teamB });
+      } else {
+        matches.push({ a: [group[0]], b: [group[1]] });
+      }
+    }
+
+    playing.forEach(p => { stats[p].played++; stats[p].restStreak = 0; });
+    resting.forEach(p => { stats[p].restStreak++; });
+    matches.forEach(match => {
+      match.a.forEach(p1 => match.a.forEach(p2 => { if (p1 !== p2) stats[p1].partners.add(p2); }));
+      match.b.forEach(p1 => match.b.forEach(p2 => { if (p1 !== p2) stats[p1].partners.add(p2); }));
+      match.a.forEach(p1 => match.b.forEach(p2 => { stats[p1].opponents.add(p2); stats[p2].opponents.add(p1); }));
+    });
+    roundsData.push({ matches, resting });
+  }
+
+  let html = `<div class="result-card"><div class="group-header"><span class="tag tag-teal">休閒輪替</span><span style="font-size:13px;color:#6b6b68;">${isDoubles ? '雙打' : '單打'}，${n} 人，${totalRounds} 輪，${courts} 面場地</span></div></div>`;
+  let cumulative = 0;
+  roundsData.forEach((roundData, roundIndex) => {
+    const startMin = cumulative;
+    const endMin = cumulative + minutes;
+    html += `<div class="round-block">
+      <div class="round-block-header">
+        <div class="round-block-title"><span class="tag tag-blue">第 ${roundIndex + 1} 輪</span></div>
+        <div class="round-block-time">預估 ${startMin}-${endMin} 分鐘，每場 ${minutes} 分鐘</div>
+      </div>`;
+    roundData.matches.forEach((match, matchIndex) => {
+      html += `<div class="court-row">${courtTagHtml(matchIndex + 1)}${teamHtml(match.a)} <span class="match-vs">VS</span> ${teamHtml(match.b)}</div>`;
+    });
+    if (roundData.matches.length < courts) html += `<div class="rest-row">空出 ${courts - roundData.matches.length} 面場地。</div>`;
+    if (roundData.resting.length > 0) html += `<div class="rest-row">本輪休息：${roundData.resting.map(p => tagHtml(p)).join(' ')}</div>`;
+    html += '</div>';
+    cumulative = endMin;
+  });
+
+  html += `<div class="result-card"><div class="group-header"><span class="tag tag-teal">出賽統計</span></div>`;
+  ps.forEach(p => {
+    const stat = stats[p];
+    const restTotal = totalRounds - stat.played;
+    html += `<div class="player-row">${tagHtml(p)}<span style="margin-left:auto;font-size:12px;color:#6b6b68;">出賽 ${stat.played} 場，休息 ${restTotal} 輪${isDoubles ? `，搭檔 ${stat.partners.size} 人` : ''}</span></div>`;
+  });
+  html += '</div>';
+  html += `<div class="result-card" style="background:#f9f9f7;border-style:dashed;"><div style="font-size:13px;color:#6b6b68;">共 ${totalRounds} 輪，預估總時間 <strong>${cumulative} 分鐘</strong>。</div></div>`;
+  return html;
+}
+
+function pickBestPairing(group, stats) {
+  const [w, x, y, z] = group;
+  const options = [
+    [[w, x], [y, z]],
+    [[w, y], [x, z]],
+    [[w, z], [x, y]]
+  ];
+  const scored = options.map(option => {
+    let score = 0;
+    option.forEach(team => {
+      if (stats[team[0]].partners.has(team[1])) score += 2;
+    });
+    const [teamA, teamB] = option;
+    teamA.forEach(p1 => teamB.forEach(p2 => {
+      if (stats[p1].opponents.has(p2)) score += 1;
+    }));
+    return { option, score, random: Math.random() };
+  });
+  scored.sort((a, b) => (a.score - b.score) || (a.random - b.random));
+  return scored[0].option;
+}
+
+function normalizeRegistrations(items) {
+  const seen = new Set();
+  return items
+    .filter(item => item && item.name && !seen.has(item.name))
+    .map(item => {
+      seen.add(item.name);
+      return {
+        id: item.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name: item.name,
+        level: item.level || '',
+        note: item.note || '',
+        cancelCode: item.cancelCode || '',
+        status: 'registered',
+        createdAt: item.createdAt || new Date().toISOString()
+      };
+    });
+}
+
+function loadRegistrations() {
+  try {
+    const saved = localStorage.getItem(registrationStorageKey);
+    registrations = normalizeRegistrations(saved ? JSON.parse(saved) : []);
+  } catch (error) {
+    registrations = [];
+  }
+  players = registrations.map(item => item.name);
+  document.getElementById('playerCount').value = players.length || 8;
+  renderChips();
+  saveRegistrations();
+  renderRegistrations();
+}
+
+function submitRegistration() {
+  const name = document.getElementById('signupName').value.trim();
+  const level = document.getElementById('signupLevel').value;
+  const note = document.getElementById('signupNote').value.trim();
+  const message = document.getElementById('signupMessage');
+
+  if (!name) {
+    message.textContent = '請先填寫姓名。';
+    message.style.color = '#a32d2d';
+    return;
+  }
+  if (players.includes(name) || registrations.some(item => item.name === name)) {
+    message.textContent = '這位球員已經報名了。';
+    message.style.color = '#a32d2d';
+    return;
+  }
+
+  registrations.push({
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name,
+    level,
+    note,
+    status: 'registered',
+    createdAt: new Date().toISOString()
+  });
+  players.push(name);
+  document.getElementById('playerCount').value = players.length;
+  renderChips();
+  saveRegistrations();
+  renderRegistrations();
+  clearSignupForm(false);
+  resetTeamState();
+  message.textContent = '報名完成，已加入名單。';
+  message.style.color = '#085041';
+}
+
+function clearSignupForm(clearMessage = true) {
+  document.getElementById('signupName').value = '';
+  document.getElementById('signupLevel').value = '';
+  document.getElementById('signupNote').value = '';
+  if (clearMessage) document.getElementById('signupMessage').textContent = '';
+}
+
+function renderRegistrations() {
+  const list = document.getElementById('registrationList');
+  if (!list) return;
+  if (registrations.length === 0) {
+    list.innerHTML = '<div class="registration-empty">目前沒有報名資料。</div>';
+    return;
+  }
+
+  list.innerHTML = registrations.map((item, index) => `
+    <div class="player-row">
+      <span class="tag tag-${tagColors[index % tagColors.length]}">${index + 1}</span>
+      <div>
+        <div>${escapeHtml(item.name)}${levelHtml(item.level)}</div>
+        <div class="registration-meta">
+          ${item.note ? `備註：${escapeHtml(item.note)}　` : ''}
+          ${formatRegistrationTime(item.createdAt)}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleAdminPanel() {
+  if (!adminUnlocked && !unlockAdmin()) return;
+  const panel = document.getElementById('adminPanel');
+  panel.hidden = !panel.hidden;
+  if (!panel.hidden) {
+    document.getElementById('playerCount').value = players.length || 8;
+    renderChips();
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function unlockAdmin() {
+  const input = prompt('請輸入管理碼');
+  if (input !== adminPasscode) {
+    alert('管理碼錯誤');
+    return false;
+  }
+  adminUnlocked = true;
+  return true;
+}
+
+function setupAdminEntry() {
+  if (!location.pathname.endsWith('admin.html')) return;
+}
+
+function exportRegistrations() {
+  const header = ['姓名','程度','備註','報名時間'];
+  const rows = registrations.map(item => [
+    item.name,
+    item.level || '',
+    item.note || '',
+    item.createdAt || ''
+  ]);
+  const csv = [header, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = '球員報名名單.csv';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function renderRegistrations() {
+  const list = document.getElementById('registrationList');
+  if (!list) return;
+  if (registrations.length === 0) {
+    list.innerHTML = '<div class="registration-empty">目前沒有報名資料。</div>';
+    return;
+  }
+
+  list.innerHTML = registrations.map((item, index) => `
+    <div class="player-row">
+      <span class="tag tag-${tagColors[index % tagColors.length]}">${index + 1}</span>
+      <div>
+        <div>${escapeHtml(item.name)}${levelHtml(item.level)}</div>
+        <div class="registration-meta">
+          ${item.note ? `備註：${escapeHtml(item.note)}　` : ''}
+          ${formatRegistrationTime(item.createdAt)}
+        </div>
+      </div>
+      <div class="registration-actions">
+        <button class="btn-secondary" type="button" onclick="deleteRegistration('${item.id}')">刪除</button>
+      </div>
+    </div>`).join('');
+}
+
+function deleteRegistration(id) {
+  const item = registrations.find(entry => entry.id === id);
+  registrations = registrations.filter(entry => entry.id !== id);
+  if (item) players = players.filter(name => name !== item.name);
+  document.getElementById('playerCount').value = players.length || 8;
+  renderChips();
+  saveRegistrations();
+  renderRegistrations();
+  resetTeamState();
+}
+
+function exportRegistrations() {
+  const header = ['姓名','程度','備註','報名時間'];
+  const rows = registrations.map(item => [
+    item.name,
+    item.level || '',
+    item.note || '',
+    item.createdAt || ''
+  ]);
+  const csv = [header, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = '球員報名名單.csv';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function usesRemoteApi() {
+  return registrationApiUrl.trim().startsWith('https://');
+}
+
+function apiRequest(action, params = {}) {
+  return new Promise((resolve, reject) => {
+    const callback = `jsonp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    const url = new URL(registrationApiUrl);
+    url.searchParams.set('action', action);
+    url.searchParams.set('callback', callback);
+    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value || ''));
+
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('連線逾時，請稍後再試。'));
+    }, 12000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[callback];
+      script.remove();
+    }
+
+    window[callback] = data => {
+      cleanup();
+      if (data && data.ok) resolve(data);
+      else reject(new Error((data && data.error) || '操作失敗'));
+    };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('無法連線到報名資料庫。'));
+    };
+    script.src = url.toString();
+    document.body.appendChild(script);
+  });
+}
+
+function saveRegistrations() {
+  if (!usesRemoteApi()) localStorage.setItem(registrationStorageKey, JSON.stringify(registrations));
+}
+
+async function loadRegistrations() {
+  try {
+    if (usesRemoteApi()) {
+      const data = await apiRequest('list');
+      registrations = normalizeRegistrations(data.registrations || []);
+    } else {
+      const saved = localStorage.getItem(registrationStorageKey);
+      registrations = normalizeRegistrations(saved ? JSON.parse(saved) : []);
+    }
+  } catch (error) {
+    alert(error.message);
+    registrations = [];
+  }
+  players = registrations.map(item => item.name);
+  document.getElementById('playerCount').value = players.length || 8;
+  renderChips();
+  renderRegistrations();
+}
+
+async function deleteRegistration(id) {
+  const item = registrations.find(entry => entry.id === id);
+  if (!item) return;
+  if (!confirm(`確定刪除 ${item.name} 的報名資料？`)) return;
+
+  try {
+    if (usesRemoteApi()) {
+      const adminCode = prompt('請輸入管理碼');
+      if (adminCode === null) return;
+      const data = await apiRequest('delete', { id, adminCode });
+      registrations = normalizeRegistrations(data.registrations || []);
+    } else {
+      registrations = registrations.filter(entry => entry.id !== id);
+      saveRegistrations();
+    }
+    players = registrations.map(entry => entry.name);
+    document.getElementById('playerCount').value = players.length || 8;
+    renderChips();
+    renderRegistrations();
+    resetTeamState();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+loadRegistrations();
+setupAdminEntry();
+</script>
+</body>
+</html>

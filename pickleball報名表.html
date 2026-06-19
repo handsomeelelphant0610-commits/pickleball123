@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>匹克球報名表</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: #f5f5f3;
+    color: #1a1a18;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 650; margin-bottom: 0.25rem; }
+  .subtitle { font-size: 14px; color: #6b6b68; margin-bottom: 2rem; }
+  .card {
+    background: #fff;
+    border: 1px solid #e3e2dc;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6b6b68;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.75rem;
+  }
+  .card-hint { font-size: 12px; color: #8b8b86; margin-top: 6px; line-height: 1.5; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 14px; color: #3a3a38; }
+  input, select, textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    border: 1px solid #d3d1c7;
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: #1a1a18;
+    background: #fff;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: #534ab7;
+    box-shadow: 0 0 0 3px rgba(83,74,183,0.12);
+  }
+  textarea { min-height: 84px; resize: vertical; line-height: 1.5; }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  button {
+    font-family: inherit;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-primary {
+    font-size: 15px;
+    font-weight: 650;
+    padding: 10px 28px;
+    border: none;
+    background: #534ab7;
+    color: #fff;
+  }
+  .btn-primary:hover { background: #3c3489; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary, .btn-danger {
+    font-size: 13px;
+    padding: 6px 14px;
+    border: 1px solid #d3d1c7;
+    background: #fff;
+    color: #3a3a38;
+  }
+  .btn-secondary:hover { background: #f5f5f3; }
+  .btn-danger { border-color: #efc7c7; color: #a32d2d; }
+  .btn-danger:hover { background: #fff5f5; }
+  .player-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 9px 0;
+    border-bottom: 1px solid #f0efe8;
+    font-size: 14px;
+  }
+  .player-row:last-child { border-bottom: none; }
+  .player-main { flex: 1; min-width: 0; }
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .tag-blue { background: #e6f1fb; color: #0c447c; }
+  .tag-teal { background: #e1f5ee; color: #085041; }
+  .tag-amber { background: #faeeda; color: #633806; }
+  .tag-coral { background: #faece7; color: #712b13; }
+  .tag-purple { background: #eeedfe; color: #3c3489; }
+  .tag-pink { background: #fbeaf0; color: #72243e; }
+  .tag-green { background: #eaf3de; color: #27500a; }
+  .tag-gray { background: #f1efe8; color: #444441; }
+  .meta { color: #6b6b68; font-size: 12px; line-height: 1.5; margin-top: 2px; }
+  .empty { color: #8b8b86; font-size: 13px; padding: 8px 0; }
+  @media (max-width: 520px) {
+    body { padding: 1rem 0.75rem; }
+    .card { padding: 1rem; }
+    .player-row { align-items: stretch; flex-direction: column; }
+    .player-row .tag { width: fit-content; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>匹克球報名表</h1>
+  <p class="subtitle">大家可以查看同一份報名名單；取消報名需輸入自己設定的取消密碼。</p>
+
+  <div class="card">
+    <div class="card-title">球員報名</div>
+    <div class="grid2">
+      <div class="form-field">
+        <label for="signupName">姓名</label>
+        <input type="text" id="signupName" placeholder="例：王小明" autocomplete="name" />
+      </div>
+      <div class="form-field">
+        <label for="signupLevel">程度（非必填）</label>
+        <select id="signupLevel">
+          <option value="">不填寫</option>
+          <option value="新手">新手</option>
+          <option value="2.0-2.5">2.0-2.5</option>
+          <option value="2.5-3.0">2.5-3.0</option>
+          <option value="3.0-3.5">3.0-3.5</option>
+          <option value="3.5以上">3.5以上</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="signupCancelCode">取消密碼</label>
+        <input type="password" id="signupCancelCode" placeholder="之後取消報名時使用" autocomplete="new-password" />
+      </div>
+    </div>
+    <div class="form-field" style="margin-top:12px;">
+      <label for="signupNote">備註</label>
+      <textarea id="signupNote" placeholder="新入群者自我填寫"></textarea>
+    </div>
+    <div class="row" style="margin-top:12px;">
+      <button class="btn-primary" type="button" onclick="submitRegistration()">送出報名</button>
+      <button class="btn-secondary" type="button" onclick="clearSignupForm()">清空</button>
+      <span id="signupMessage" class="card-hint"></span>
+    </div>
+    <p class="card-hint" id="dataModeHint"></p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">已報名名單</div>
+    <div id="registrationList"></div>
+  </div>
+</div>
+
+<script>
+let registrations = [];
+const registrationStorageKey = 'badmintonTournamentRegistrations';
+const registrationApiUrl = '';
+const tagColors = ['blue','teal','amber','coral','purple','pink','green','gray'];
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[ch]);
+}
+
+function levelHtml(level) {
+  const cleanLevel = String(level || '').trim();
+  if (!cleanLevel || cleanLevel === '初學' || cleanLevel === '出學') return '';
+  return ` <span class="meta">程度：${escapeHtml(cleanLevel)}</span>`;
+}
+
+function usesRemoteApi() {
+  return registrationApiUrl.trim().startsWith('https://');
+}
+
+function apiRequest(action, params = {}) {
+  return new Promise((resolve, reject) => {
+    const callback = `jsonp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    const url = new URL(registrationApiUrl);
+    url.searchParams.set('action', action);
+    url.searchParams.set('callback', callback);
+    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value || ''));
+
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('連線逾時，請稍後再試。'));
+    }, 12000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[callback];
+      script.remove();
+    }
+
+    window[callback] = data => {
+      cleanup();
+      if (data && data.ok) resolve(data);
+      else reject(new Error((data && data.error) || '操作失敗'));
+    };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('無法連線到報名資料庫。'));
+    };
+    script.src = url.toString();
+    document.body.appendChild(script);
+  });
+}
+
+function normalizeRegistrations(items) {
+  const seen = new Set();
+  return (items || [])
+    .filter(item => item && item.name && !seen.has(item.name))
+    .map(item => {
+      seen.add(item.name);
+      return {
+        id: item.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name: item.name,
+        level: item.level || '',
+        note: item.note || '',
+        cancelCode: item.cancelCode || '',
+        status: 'registered',
+        createdAt: item.createdAt || new Date().toISOString()
+      };
+    });
+}
+
+async function loadRegistrations() {
+  document.getElementById('dataModeHint').textContent = usesRemoteApi()
+    ? '目前使用線上共用名單。'
+    : '目前是本機測試模式：上線前請填入 Google Apps Script 網址。';
+
+  if (usesRemoteApi()) {
+    try {
+      const data = await apiRequest('list');
+      registrations = normalizeRegistrations(data.registrations);
+    } catch (error) {
+      renderMessage(error.message, true);
+    }
+  } else {
+    try {
+      const saved = localStorage.getItem(registrationStorageKey);
+      registrations = normalizeRegistrations(saved ? JSON.parse(saved) : []);
+    } catch (error) {
+      registrations = [];
+    }
+  }
+  saveLocalRegistrations();
+  renderRegistrations();
+}
+
+function saveLocalRegistrations() {
+  if (!usesRemoteApi()) localStorage.setItem(registrationStorageKey, JSON.stringify(registrations));
+}
+
+function renderMessage(text, isError = false) {
+  const message = document.getElementById('signupMessage');
+  message.textContent = text;
+  message.style.color = isError ? '#a32d2d' : '#085041';
+}
+
+async function submitRegistration() {
+  const name = document.getElementById('signupName').value.trim();
+  const level = document.getElementById('signupLevel').value;
+  const note = document.getElementById('signupNote').value.trim();
+  const cancelCode = document.getElementById('signupCancelCode').value.trim();
+
+  if (!name) return renderMessage('請先填寫姓名。', true);
+  if (!cancelCode) return renderMessage('請設定取消密碼，之後才能自行取消報名。', true);
+  if (!usesRemoteApi() && registrations.some(item => item.name === name)) {
+    return renderMessage('這位球員已經報名了。', true);
+  }
+
+  try {
+    if (usesRemoteApi()) {
+      const data = await apiRequest('register', { name, level, note, cancelCode });
+      registrations = normalizeRegistrations(data.registrations);
+    } else {
+      registrations.push({
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name,
+        level,
+        note,
+        cancelCode,
+        status: 'registered',
+        createdAt: new Date().toISOString()
+      });
+      saveLocalRegistrations();
+    }
+    renderRegistrations();
+    clearSignupForm(false);
+    renderMessage('報名完成。');
+  } catch (error) {
+    renderMessage(error.message, true);
+  }
+}
+
+function clearSignupForm(clearMessage = true) {
+  document.getElementById('signupName').value = '';
+  document.getElementById('signupLevel').value = '';
+  document.getElementById('signupCancelCode').value = '';
+  document.getElementById('signupNote').value = '';
+  if (clearMessage) renderMessage('');
+}
+
+function formatRegistrationTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+function renderRegistrations() {
+  const list = document.getElementById('registrationList');
+  if (registrations.length === 0) {
+    list.innerHTML = '<div class="empty">目前沒有報名資料。</div>';
+    return;
+  }
+
+  list.innerHTML = registrations.map((item, index) => `
+    <div class="player-row">
+      <span class="tag tag-${tagColors[index % tagColors.length]}">${index + 1}</span>
+      <div class="player-main">
+        <div>${escapeHtml(item.name)}${levelHtml(item.level)}</div>
+        <div class="meta">${item.note ? `備註：${escapeHtml(item.note)}　` : ''}${formatRegistrationTime(item.createdAt)}</div>
+      </div>
+      <button class="btn-danger" type="button" onclick="cancelRegistration('${item.id}')">取消報名</button>
+    </div>`).join('');
+}
+
+async function cancelRegistration(id) {
+  const item = registrations.find(entry => entry.id === id);
+  if (!item) return;
+  const cancelCode = prompt(`請輸入 ${item.name} 的取消密碼`);
+  if (cancelCode === null) return;
+
+  try {
+    if (usesRemoteApi()) {
+      const data = await apiRequest('cancel', { id, cancelCode });
+      registrations = normalizeRegistrations(data.registrations);
+    } else {
+      if (cancelCode !== item.cancelCode) throw new Error('取消密碼錯誤。');
+      registrations = registrations.filter(entry => entry.id !== id);
+      saveLocalRegistrations();
+    }
+    renderRegistrations();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+loadRegistrations();
+</script>
+</body>
+</html>
