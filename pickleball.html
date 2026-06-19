@@ -85,6 +85,15 @@
     flex-wrap: wrap;
     margin-left: auto;
   }
+  .admin-panel[hidden] { display: none; }
+  .admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
   .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
   .radio-group { display: flex; gap: 1.5rem; flex-wrap: wrap; }
@@ -248,7 +257,7 @@
 <body>
 <div class="container">
   <h1>羽球賽程產生器</h1>
-  <p class="subtitle">輸入球員、選擇賽制與場地數，快速排出可列印的比賽時程。</p>
+  <p class="subtitle">球員可自行報名；管理者再依名單產生賽程。</p>
 
   <div class="card no-print">
     <div class="card-title">球員報名</div>
@@ -258,27 +267,20 @@
         <input type="text" id="signupName" placeholder="例：王小明" />
       </div>
       <div class="form-field">
-        <label for="signupContact">聯絡方式</label>
-        <input type="tel" id="signupContact" placeholder="電話、LINE ID 或 Email" />
-      </div>
-      <div class="form-field">
-        <label for="signupLevel">程度</label>
+        <label for="signupLevel">程度（非必填）</label>
         <select id="signupLevel">
-          <option value="初學">初學</option>
-          <option value="初中階">初中階</option>
-          <option value="中階" selected>中階</option>
-          <option value="中高階">中高階</option>
-          <option value="高階">高階</option>
+          <option value="">不填寫</option>
+          <option value="新手">新手</option>
+          <option value="2.0-2.5">2.0-2.5</option>
+          <option value="2.5-3.0">2.5-3.0</option>
+          <option value="3.0-3.5">3.0-3.5</option>
+          <option value="3.5以上">3.5以上</option>
         </select>
-      </div>
-      <div class="form-field">
-        <label for="signupPartner">雙打搭檔</label>
-        <input type="text" id="signupPartner" placeholder="沒有固定搭檔可留空" />
       </div>
     </div>
     <div class="form-field" style="margin-top:12px;">
       <label for="signupNote">備註</label>
-      <textarea id="signupNote" placeholder="可填寫希望時段、是否可協助記分等"></textarea>
+      <textarea id="signupNote" placeholder="新入群者自我填寫"></textarea>
     </div>
     <div class="row" style="margin-top:12px;">
       <button class="btn-primary" type="button" onclick="submitRegistration()">送出報名</button>
@@ -290,17 +292,25 @@
   <div class="card no-print">
     <div class="registration-toolbar">
       <div>
-        <div class="card-title" style="margin-bottom:4px;">待審報名名單</div>
-        <p class="card-hint" style="margin-top:0;">核准後會自動加入下方球員名單；資料會保存在這台瀏覽器。</p>
+        <div class="card-title" style="margin-bottom:4px;">已報名名單</div>
+        <p class="card-hint" style="margin-top:0;">送出後會直接加入名單；管理功能預設隱藏，避免公開頁面直接出現刪改按鈕。</p>
       </div>
       <div class="row">
-        <button class="btn-secondary" type="button" onclick="approveAllRegistrations()">全部核准</button>
+        <button class="btn-secondary" type="button" onclick="toggleAdminPanel()">管理模式</button>
         <button class="btn-secondary" type="button" onclick="exportRegistrations()">匯出 CSV</button>
-        <button class="btn-secondary" type="button" onclick="clearApprovedRegistrations()">清除已核准紀錄</button>
       </div>
     </div>
     <div id="registrationList"></div>
   </div>
+
+  <div id="adminPanel" class="admin-panel" hidden>
+    <div class="admin-header no-print">
+      <div>
+        <div class="card-title" style="margin-bottom:4px;">管理模式</div>
+        <p class="card-hint" style="margin-top:0;">這裡才提供手動增刪球員、配對與產生賽程。</p>
+      </div>
+      <button class="btn-secondary" type="button" onclick="toggleAdminPanel()">收合管理模式</button>
+    </div>
 
   <div class="card no-print">
     <div class="card-title">球員數量</div>
@@ -377,6 +387,7 @@
   </div>
 
   <div id="output" class="result-section"></div>
+  </div>
 </div>
 
 <script>
@@ -1103,6 +1114,131 @@ function pickBestPairing(group, stats) {
   });
   scored.sort((a, b) => (a.score - b.score) || (a.random - b.random));
   return scored[0].option;
+}
+
+function normalizeRegistrations(items) {
+  const seen = new Set();
+  return items
+    .filter(item => item && item.name && !seen.has(item.name))
+    .map(item => {
+      seen.add(item.name);
+      return {
+        id: item.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name: item.name,
+        level: item.level || '',
+        note: item.note || '',
+        status: 'registered',
+        createdAt: item.createdAt || new Date().toISOString()
+      };
+    });
+}
+
+function loadRegistrations() {
+  try {
+    const saved = localStorage.getItem(registrationStorageKey);
+    registrations = normalizeRegistrations(saved ? JSON.parse(saved) : []);
+  } catch (error) {
+    registrations = [];
+  }
+  players = registrations.map(item => item.name);
+  document.getElementById('playerCount').value = players.length || 8;
+  renderChips();
+  saveRegistrations();
+  renderRegistrations();
+}
+
+function submitRegistration() {
+  const name = document.getElementById('signupName').value.trim();
+  const level = document.getElementById('signupLevel').value;
+  const note = document.getElementById('signupNote').value.trim();
+  const message = document.getElementById('signupMessage');
+
+  if (!name) {
+    message.textContent = '請先填寫姓名。';
+    message.style.color = '#a32d2d';
+    return;
+  }
+  if (players.includes(name) || registrations.some(item => item.name === name)) {
+    message.textContent = '這位球員已經報名了。';
+    message.style.color = '#a32d2d';
+    return;
+  }
+
+  registrations.push({
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name,
+    level,
+    note,
+    status: 'registered',
+    createdAt: new Date().toISOString()
+  });
+  players.push(name);
+  document.getElementById('playerCount').value = players.length;
+  renderChips();
+  saveRegistrations();
+  renderRegistrations();
+  clearSignupForm(false);
+  resetTeamState();
+  message.textContent = '報名完成，已加入名單。';
+  message.style.color = '#085041';
+}
+
+function clearSignupForm(clearMessage = true) {
+  document.getElementById('signupName').value = '';
+  document.getElementById('signupLevel').value = '';
+  document.getElementById('signupNote').value = '';
+  if (clearMessage) document.getElementById('signupMessage').textContent = '';
+}
+
+function renderRegistrations() {
+  const list = document.getElementById('registrationList');
+  if (!list) return;
+  if (registrations.length === 0) {
+    list.innerHTML = '<div class="registration-empty">目前沒有報名資料。</div>';
+    return;
+  }
+
+  list.innerHTML = registrations.map((item, index) => `
+    <div class="player-row">
+      <span class="tag tag-${tagColors[index % tagColors.length]}">${index + 1}</span>
+      <div>
+        <div>${escapeHtml(item.name)}${item.level ? ` <span class="registration-meta">程度：${escapeHtml(item.level)}</span>` : ''}</div>
+        <div class="registration-meta">
+          ${item.note ? `備註：${escapeHtml(item.note)}　` : ''}
+          ${formatRegistrationTime(item.createdAt)}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleAdminPanel() {
+  const panel = document.getElementById('adminPanel');
+  panel.hidden = !panel.hidden;
+  if (!panel.hidden) {
+    document.getElementById('playerCount').value = players.length || 8;
+    renderChips();
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function exportRegistrations() {
+  const header = ['姓名','程度','備註','報名時間'];
+  const rows = registrations.map(item => [
+    item.name,
+    item.level || '',
+    item.note || '',
+    item.createdAt || ''
+  ]);
+  const csv = [header, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = '球員報名名單.csv';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 loadRegistrations();
